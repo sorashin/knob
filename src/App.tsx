@@ -1,34 +1,52 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useState } from 'react';
+import { Preview3D } from './components/Preview3D';
+import { Knob } from './components/Knob';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [pixelRatio, setPixelRatio] = useState(0.25);
+  const hue = 596.8;
+  const [saturation, setSaturation] = useState(28.19);
+  const [lightness, setLightness] = useState(46.62);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo h-24 p-6 will-change-[filter] transition-[filter] duration-300 hover:drop-shadow-[0_0_2em_#646cffaa]" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react h-24 p-6 will-change-[filter] transition-[filter] duration-300 hover:drop-shadow-[0_0_2em_#61dafbaa] animate-[spin_20s_linear_infinite]" alt="React logo" />
-        </a>
-      </div>
-      <h1 className="text-[3.2em] leading-[1.1]">Vite + React</h1>
-      <div className="card p-8">
-        <button className="rounded-lg border border-transparent px-[1.2em] py-[0.6em] text-[1em] font-medium font-inherit bg-[#f9f9f9] dark:bg-[#1a1a1a] cursor-pointer transition-colors duration-250 hover:border-[#646cff] focus:outline-4 focus:outline-auto" onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs text-[#888]">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <div className="min-h-screen w-full flex items-center justify-center p-8 bg-[#3a3a38]">
+      <div
+        className="w-[600px] h-[700px] rounded-3xl p-6 flex flex-col
+          bg-[linear-gradient(145deg,#2a2a2a,#1a1a1a)]
+          shadow-[20px_20px_60px_#0a0a0a,-20px_-20px_60px_#3a3a3a,inset_0_0_20px_rgba(0,0,0,0.2)]
+          border border-[rgba(60,60,60,0.3)]"
+      >
+        {/* Preview Screen (Top Half) */}
+        <div className="flex-1 mb-8">
+          <Preview3D hue={hue} saturation={saturation} lightness={lightness} pixelRatio={pixelRatio} />
+        </div>
 
-export default App
+        {/* Knob Controls (Bottom Half) */}
+        <div className="flex justify-around items-start pb-8">
+          <Knob
+            label="Px"
+            value={pixelRatio}
+            min={0.05}
+            max={1}
+            step={0.05}
+            onChange={setPixelRatio}
+          />
+          <Knob
+            label="S"
+            value={saturation}
+            min={0}
+            max={100}
+            onChange={setSaturation}
+          />
+          <Knob
+            label="L"
+            value={lightness}
+            min={0}
+            max={100}
+            onChange={setLightness}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
