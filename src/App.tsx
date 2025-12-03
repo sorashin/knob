@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { ModularPreview3D } from './components/ModularPreview3D';
 import { PolygonsToolPreview3D } from './components/PolygonsToolPreview3D';
 import { Knob } from './components/Knob';
@@ -18,6 +18,8 @@ export default function App() {
   const [innerDiameter, setInnerDiameter] = useState(8);
   const [diameter, setDiameter] = useState(112);
   const [lightness, setLightness] = useState(46.62);
+  const [polygon, setPolygon] = useState(7);
+  const [gcodeText, setGcodeText] = useState<string | null>(null);
   const [activeKnob, setActiveKnob] = useState<ActiveKnobState | null>(null);
   const [showJewelry, setShowJewelry] = useState(false);
 
@@ -36,7 +38,32 @@ export default function App() {
       return showJewelry ? innerDiameter : diameter;
     }
     if (label === "L") return lightness;
+    if (label === "P") return polygon;
     return 0;
+  };
+
+  // Gcode update callback (memoized to prevent unnecessary re-renders)
+  const handleGcodeUpdate = useCallback((gcode: string | null) => {
+    setGcodeText(gcode);
+  }, []);
+
+  // Export G-code function
+  const handleExportGcode = () => {
+    if (!gcodeText) {
+      alert("No G-code data to export!");
+      return;
+    }
+
+    // Create download link for G-code
+    const blob = new Blob([gcodeText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `polygonstool-${new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-')}.gcode`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -62,7 +89,12 @@ export default function App() {
           {showJewelry ? (
             <ModularPreview3D pixelRatio={pixelRatio} innerDiameter={innerDiameter} />
           ) : (
-            <PolygonsToolPreview3D pixelRatio={pixelRatio} diameter={diameter} />
+            <PolygonsToolPreview3D 
+              pixelRatio={pixelRatio} 
+              diameter={diameter} 
+              polygon={polygon}
+              onGcodeUpdate={handleGcodeUpdate}
+            />
           )}
         </div>
 
@@ -77,8 +109,6 @@ export default function App() {
             onChange={setPixelRatio}
             onInteractionStart={() => handleKnobInteractionStart("Px", pixelRatio, 0.05, 1, 0.05, 0.1)}
             onInteractionEnd={handleKnobInteractionEnd}
-            onHoverStart={() => handleKnobInteractionStart("Px", pixelRatio, 0.05, 1, 0.05, 0.1)}
-            onHoverEnd={handleKnobInteractionEnd}
           />
           {showJewelry ? (
             <Knob
@@ -90,8 +120,6 @@ export default function App() {
               onChange={setInnerDiameter}
               onInteractionStart={() => handleKnobInteractionStart("D", innerDiameter, 5, 15, 0.1, 1)}
               onInteractionEnd={handleKnobInteractionEnd}
-              onHoverStart={() => handleKnobInteractionStart("D", innerDiameter, 5, 15, 0.1, 1)}
-              onHoverEnd={handleKnobInteractionEnd}
             />
           ) : (
             <Knob
@@ -103,8 +131,6 @@ export default function App() {
               onChange={setDiameter}
               onInteractionStart={() => handleKnobInteractionStart("D", diameter, 80, 250, 1, 10)}
               onInteractionEnd={handleKnobInteractionEnd}
-              onHoverStart={() => handleKnobInteractionStart("D", diameter, 80, 250, 1, 10)}
-              onHoverEnd={handleKnobInteractionEnd}
             />
           )}
           <Knob
@@ -115,10 +141,23 @@ export default function App() {
             onChange={setLightness}
             onInteractionStart={() => handleKnobInteractionStart("L", lightness, 0, 100, 1, 10)}
             onInteractionEnd={handleKnobInteractionEnd}
-            onHoverStart={() => handleKnobInteractionStart("L", lightness, 0, 100, 1, 10)}
-            onHoverEnd={handleKnobInteractionEnd}
           />
-          <button className="print-button size-24 cursor-pointer">
+          {!showJewelry && (
+            <Knob
+              label="P"
+              value={polygon}
+              min={3}
+              max={16}
+              step={1}
+              onChange={setPolygon}
+              onInteractionStart={() => handleKnobInteractionStart("P", polygon, 3, 16, 1, 1)}
+              onInteractionEnd={handleKnobInteractionEnd}
+            />
+          )}
+          <button 
+            className="print-button size-24 cursor-pointer"
+            onClick={handleExportGcode}
+          >
             Print
           </button>
         </div>
