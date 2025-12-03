@@ -7,9 +7,11 @@ interface KnobProps {
   max: number;
   step?: number;
   onChange: (value: number) => void;
+  onInteractionStart?: () => void;
+  onInteractionEnd?: () => void;
 }
 
-export function Knob({ label, value, min, max, step, onChange }: KnobProps) {
+export function Knob({ label, value, min, max, step, onChange, onInteractionStart, onInteractionEnd }: KnobProps) {
   const knobRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -27,6 +29,7 @@ export function Knob({ label, value, min, max, step, onChange }: KnobProps) {
     setIsDragging(true);
     setStartX(e.clientX);
     setStartValue(value);
+    onInteractionStart?.();
     e.preventDefault();
   };
 
@@ -34,6 +37,7 @@ export function Knob({ label, value, min, max, step, onChange }: KnobProps) {
     setIsDragging(true);
     setStartX(e.touches[0].clientX);
     setStartValue(value);
+    onInteractionStart?.();
     e.preventDefault();
   };
 
@@ -74,6 +78,7 @@ export function Knob({ label, value, min, max, step, onChange }: KnobProps) {
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      onInteractionEnd?.();
     };
 
     if (isDragging) {
@@ -89,7 +94,7 @@ export function Knob({ label, value, min, max, step, onChange }: KnobProps) {
         document.removeEventListener('touchend', handleMouseUp);
       };
     }
-  }, [isDragging, startX, startValue, min, max, step, onChange]);
+  }, [isDragging, startX, startValue, min, max, step, onChange, onInteractionEnd]);
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -112,9 +117,8 @@ export function Knob({ label, value, min, max, step, onChange }: KnobProps) {
         >
           {/* Center Circle */}
           <div
-            className="absolute inset-[6px] rounded-full
-              bg-[radial-gradient(circle_at_30%_30%,#3a3a3a,#252525_50%,#1a1a1a)]
-              shadow-[inset_0_2px_8px_rgba(0,0,0,0.8),inset_0_-1px_4px_rgba(0,0,0,0.5)]"
+            className="absolute inset-[2px] rounded-full
+              "
           >
             {/* Indicator */}
             <div
