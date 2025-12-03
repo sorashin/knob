@@ -56,7 +56,7 @@ const Model = ({ geometries }: { geometries: { id: string; geometry: THREE.Buffe
         <group ref={groupRef} rotation={[0, 0, 0]}>
             {geometries.map((g, i) => (
                 <mesh key={i} geometry={g.geometry} rotation={[-Math.PI / 2, 0, 0]}>
-                    <meshStandardMaterial color="#e5ba4d" metalness={0.9} roughness={0.2} />
+                    <meshStandardMaterial color="#203819" metalness={0.2} roughness={0.2} />
                     {/* <meshBasicMaterial wireframe color={"#e5ba4d"} /> */}
                 </mesh>
             ))}
@@ -86,6 +86,7 @@ export function ModularPreview3D({ pixelRatio, innerDiameter }: ModularPreview3D
   const [modular, setModular] = useState<Modular | null>(null);
   const [geometries, setGeometries] = useState<{ id: string; geometry: THREE.BufferGeometry }[]>([]);
   const [innerDiameterNodeId, setInnerDiameterNodeId] = useState<string | null>(null);
+  const isEvaluatingRef = useRef(false);
 
   useEffect(() => {
     const initModular = async () => {
@@ -149,10 +150,12 @@ export function ModularPreview3D({ pixelRatio, innerDiameter }: ModularPreview3D
   }, [modular]);
 
   useEffect(() => {
-    if (!modular || !innerDiameterNodeId) return;
+    if (!modular || !innerDiameterNodeId || isEvaluatingRef.current) return;
 
-    const updateGraph = async () => {
+    // Debounce the update to avoid too frequent evaluations
+    const timeoutId = setTimeout(async () => {
       try {
+        isEvaluatingRef.current = true;
         const property = {
             name: "value",
             value: {
@@ -179,20 +182,22 @@ export function ModularPreview3D({ pixelRatio, innerDiameter }: ModularPreview3D
         setGeometries(newGeometries);
       } catch (error) {
         console.error("Error updating graph:", error);
+      } finally {
+        isEvaluatingRef.current = false;
       }
-    };
+    }, 100); // 100ms debounce
 
-    updateGraph();
+    return () => clearTimeout(timeoutId);
   }, [innerDiameter, modular, innerDiameterNodeId]);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full bg-[#385130] border-2 border-[#283920] rounded-2xl inner-shadow-2xl">
       <Canvas
         gl={{ antialias: false }}
         camera={{ position: [0, 50, 50], fov: 45 }}
       >
         <OrbitControls makeDefault />
-        <Stage intensity={0.5} preset="rembrandt" adjustCamera={1.2}>
+        <Stage intensity={0.5} preset="soft" adjustCamera={1.2}>
            {/* Geometries will be rendered here */}
            <Model geometries={geometries} />
         </Stage>

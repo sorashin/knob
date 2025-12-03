@@ -26,6 +26,19 @@
   }
 }
 
+@layer components {
+  .inner-shadow-2xl {
+    
+box-shadow: 10px 10px 10px 0 rgba(0, 0, 0, 0.25) inset;
+  }
+  .print-button{
+    border-radius: 1rem;
+border: 1px solid rgba(0, 0, 0, 0.30);
+background: linear-gradient(145deg, #D66D54 6.17%, #B5503A 93.83%);
+box-shadow: 4px 4px 10px 0 rgba(0, 0, 0, 0.40), -2px -2px 8px 0 rgba(197, 96, 73, 0.20), 1px 1px 2px 0 rgba(255, 255, 255, 0.20) inset, -1px -1px 2px 0 rgba(0, 0, 0, 0.30) inset;
+  }
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

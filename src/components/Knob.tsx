@@ -9,9 +9,11 @@ interface KnobProps {
   onChange: (value: number) => void;
   onInteractionStart?: () => void;
   onInteractionEnd?: () => void;
+  onHoverStart?: () => void;
+  onHoverEnd?: () => void;
 }
 
-export function Knob({ label, value, min, max, step, onChange, onInteractionStart, onInteractionEnd }: KnobProps) {
+export function Knob({ label, value, min, max, step, onChange, onInteractionStart, onInteractionEnd, onHoverStart, onHoverEnd }: KnobProps) {
   const knobRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -55,9 +57,7 @@ export function Knob({ label, value, min, max, step, onChange, onInteractionStar
         newValue = Math.round(newValue / step) * step;
       }
 
-      // Round to avoid floating point issues, using a reasonable precision based on step or value
-      const precision = step ? (step.toString().split('.')[1]?.length || 0) : 2;
-      onChange(Number(newValue.toFixed(precision)));
+      onChange(newValue);
     };
 
     const handleTouchMove = (e: TouchEvent) => {
@@ -72,8 +72,7 @@ export function Knob({ label, value, min, max, step, onChange, onInteractionStar
          newValue = Math.round(newValue / step) * step;
       }
 
-      const precision = step ? (step.toString().split('.')[1]?.length || 0) : 2;
-      onChange(Number(newValue.toFixed(precision)));
+      onChange(newValue);
     };
 
     const handleMouseUp = () => {
@@ -97,7 +96,11 @@ export function Knob({ label, value, min, max, step, onChange, onInteractionStar
   }, [isDragging, startX, startValue, min, max, step, onChange, onInteractionEnd]);
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div 
+      className="flex flex-col items-center gap-3"
+      onMouseEnter={onHoverStart}
+      onMouseLeave={onHoverEnd}
+    >
       {/* Knob Body */}
       <div
         ref={knobRef}

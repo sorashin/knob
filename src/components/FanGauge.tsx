@@ -4,30 +4,22 @@ interface FanGaugeProps {
   value: number;
   min: number;
   max: number;
+  subStep?: number;
+  mainStep?: number;
   label: string;
   visible: boolean;
 }
 
-export function FanGauge({ value, min, max, label, visible }: FanGaugeProps) {
+export function FanGauge({ value, min, max, subStep, mainStep, label, visible }: FanGaugeProps) {
   const arcRadius = 600; // Adjusted radius for the screen size
   const arcAngle = 120; // Adjusted angle
   
-  // Calculate ticks
-  // The user wants the ticks to match the step size better.
-  // If we have a range of [5, 15] and we want 0.1 steps, that's (15-5)/0.1 = 100 steps.
-  // Displaying all 100 ticks might be too crowded, but let's try to make it dynamic or denser.
-  // Currently tickCount is fixed at 41.
-  
-  // Let's calculate a reasonable tick count based on the range.
-  // For D (5-15, step 0.1), we have 100 steps.
-  // For Px (0.05-1, step 0.05), we have 19 steps.
-  // For L (0-100, step 1? implicit), we have 100 steps.
-  
-  // Let's try to target a specific density, e.g. one tick every X degrees or pixels.
-  // Or just increase the count significantly and rely on the modulo logic to hide/show importance.
-  
-  // If we simply use 101 ticks, it covers 0-100% in 1% increments.
-  const tickCount = 101; 
+  // Calculate ticks based on subStep (細かい目盛り)
+  // If subStep is provided, calculate the exact number of ticks needed
+  // Otherwise, default to a reasonable number
+  const tickCount = subStep 
+    ? Math.round((max - min) / subStep) + 1 
+    : 41;
   
   const ticks = useMemo(() => {
     return Array.from({ length: tickCount }, (_, i) => {
@@ -69,14 +61,13 @@ export function FanGauge({ value, min, max, label, visible }: FanGaugeProps) {
       // Only render if within visible range (optional optimization)
       if (Math.abs(angleInDegrees) > 90) return null;
 
-      // Style calculation
-      const tickLength = isCurrent
-        ? 40
-        : Math.round(tickValue * 10) % 10 === 0
-        ? 24
-        : Math.round(tickValue * 10) % 5 === 0
-        ? 16
-        : 8;
+      // Style calculation - adjust for step-based ticks
+      // Check if this tick aligns with mainStep
+      const isMainStepTick = mainStep 
+        ? Math.abs(tickValue % mainStep) < 0.001 || Math.abs(tickValue % mainStep - mainStep) < 0.001
+        : Math.abs(tickValue % 1) < 0.001 || Math.abs(tickValue % 1 - 1) < 0.001;
+      
+      const tickLength = isMainStepTick ? 600 : 580;
 
       return (
         <div
@@ -101,7 +92,7 @@ export function FanGauge({ value, min, max, label, visible }: FanGaugeProps) {
               opacity: Math.max(0, 1 - Math.abs(angleInDegrees) / 60), // Fade out at edges
             }}
           />
-          {Math.round(tickValue * 10) % 10 === 0 && (
+          {isMainStepTick && (
             <span
               className={`absolute -top-6 text-xs font-mono ${isCurrent ? 'text-white font-bold' : 'text-gray-500'}`}
               style={{
@@ -115,7 +106,7 @@ export function FanGauge({ value, min, max, label, visible }: FanGaugeProps) {
         </div>
       );
     });
-  }, [value, min, max, tickCount, arcRadius, arcAngle]);
+  }, [value, min, max, subStep, mainStep, tickCount, arcRadius, arcAngle]);
 
   return (
     <div

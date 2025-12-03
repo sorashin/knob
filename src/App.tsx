@@ -8,6 +8,8 @@ interface ActiveKnobState {
   value: number;
   min: number;
   max: number;
+  subStep?: number;
+  mainStep?: number;
 }
 
 export default function App() {
@@ -16,8 +18,8 @@ export default function App() {
   const [lightness, setLightness] = useState(46.62);
   const [activeKnob, setActiveKnob] = useState<ActiveKnobState | null>(null);
 
-  const handleKnobInteractionStart = (label: string, value: number, min: number, max: number) => {
-    setActiveKnob({ label, value, min, max });
+  const handleKnobInteractionStart = (label: string, value: number, min: number, max: number, subStep?: number, mainStep?: number) => {
+    setActiveKnob({ label, value, min, max, subStep, mainStep });
   };
 
   const handleKnobInteractionEnd = () => {
@@ -51,17 +53,18 @@ export default function App() {
           }
           min={activeKnob.min}
           max={activeKnob.max}
+          subStep={activeKnob.subStep}
+          mainStep={activeKnob.mainStep}
           visible={!!activeKnob}
         />
       )}
       <div
-        className="w-[600px] h-[700px] rounded-3xl p-6 flex flex-col
-          bg-[linear-gradient(145deg,#2a2a2a,#1a1a1a)]
-          shadow-[20px_20px_60px_#0a0a0a,-20px_-20px_60px_#3a3a3a,inset_0_0_20px_rgba(0,0,0,0.2)]
-          border border-[rgba(60,60,60,0.3)]"
+        className="w-[600px] h-[700px] rounded-3xl p-6 flex flex-col"
       >
         {/* Preview Screen (Top Half) */}
-        <div className="flex-1 mb-8">
+        <div className="flex-1 p-2 mb-8 rounded-3xl bg-[linear-gradient(145deg,#343434,#1a1a1a)]
+          
+          border border-[rgba(60,60,60,0.3)]">
           <ModularPreview3D pixelRatio={pixelRatio} innerDiameter={innerDiameter} />
         </div>
 
@@ -74,8 +77,10 @@ export default function App() {
             max={1}
             step={0.05}
             onChange={setPixelRatio}
-            onInteractionStart={() => handleKnobInteractionStart("Px", pixelRatio, 0.05, 1)}
+            onInteractionStart={() => handleKnobInteractionStart("Px", pixelRatio, 0.05, 1, 0.05, 0.1)}
             onInteractionEnd={handleKnobInteractionEnd}
+            onHoverStart={() => handleKnobInteractionStart("Px", pixelRatio, 0.05, 1, 0.05, 0.1)}
+            onHoverEnd={handleKnobInteractionEnd}
           />
           <Knob
             label="D"
@@ -84,8 +89,10 @@ export default function App() {
             max={15}
             step={0.1}
             onChange={setInnerDiameter}
-            onInteractionStart={() => handleKnobInteractionStart("D", innerDiameter, 5, 15)}
+            onInteractionStart={() => handleKnobInteractionStart("D", innerDiameter, 5, 15, 0.1, 1)}
             onInteractionEnd={handleKnobInteractionEnd}
+            onHoverStart={() => handleKnobInteractionStart("D", innerDiameter, 5, 15, 0.1, 1)}
+            onHoverEnd={handleKnobInteractionEnd}
           />
           <Knob
             label="L"
@@ -93,9 +100,14 @@ export default function App() {
             min={0}
             max={100}
             onChange={setLightness}
-            onInteractionStart={() => handleKnobInteractionStart("L", lightness, 0, 100)}
+            onInteractionStart={() => handleKnobInteractionStart("L", lightness, 0, 100, 1, 10)}
             onInteractionEnd={handleKnobInteractionEnd}
+            onHoverStart={() => handleKnobInteractionStart("L", lightness, 0, 100, 1, 10)}
+            onHoverEnd={handleKnobInteractionEnd}
           />
+          <button className="print-button size-24 cursor-pointer">
+            Print
+          </button>
         </div>
       </div>
     </div>
